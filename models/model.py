@@ -13,7 +13,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 import torchaudio
 from torch import Tensor
-from backend import AASIST
+from models.backend import AASIST
 # try:
 #     from s3prl.nn import S3PRLUpstream
 # except NotFoundError:
