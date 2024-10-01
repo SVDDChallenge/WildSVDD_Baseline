@@ -81,6 +81,9 @@ class Dataset_WildSVDD(Dataset):
             X = X[channel_id]
             # X = np.expand_dims(X, axis=-1)
         X_pad = pad_random(X, self.cut)
+        if np.max(np.abs(X_pad)) == 0:
+            print(file_path)
+            return self.__getitem__(np.random.randint(len(self.file_list)))
         X_pad = X_pad / np.max(np.abs(X_pad))
         x_inp = Tensor(X_pad)
         

@@ -42,14 +42,14 @@ def main(args):
 
     # Create the dataset
     path = args.base_dir
-    dataset = Dataset_WildSVDD(path, subfolder="train")
+    dataset = Dataset_WildSVDD(path, subfolder="train", is_mixture=args.is_mixture)
     train_dataset, dev_dataset = torch.utils.data.random_split(dataset, [int(0.8 * len(dataset)), len(dataset) - int(0.8 * len(dataset))])
     
-    # train_dataset = SVDD2024(path, partition="train")
     train_loader = DataLoader(train_dataset, batch_size=args.batch_size, shuffle=True, num_workers=args.num_workers, worker_init_fn=seed_worker)
-    
-    # dev_dataset = SVDD2024(path, partition="dev")
     dev_loader = DataLoader(dev_dataset, batch_size=args.batch_size, shuffle=False, num_workers=args.num_workers, worker_init_fn=seed_worker)
+
+    test_dataset = Dataset_WildSVDD(path, subfolder="test_A", is_mixture=args.is_mixture)
+    test_loader = DataLoader(test_dataset, batch_size=args.batch_size, shuffle=False, num_workers=args.num_workers, worker_init_fn=seed_worker)
     
     # Create the model
     model = SVDDModel(frontend=args.encoder, device=device).to(device)
@@ -151,7 +151,7 @@ def main(args):
                 pos_samples, neg_samples = [], []
                 with torch.no_grad():
                     for i, batch in enumerate(tqdm(test_loader, desc=f"Testing")):
-                        x, label, filenames = batch
+                        x, label, _, _ = batch
                         x = x.to(device)
                         label = label.to(device)
                         _, pred = model(x)
@@ -175,6 +175,7 @@ if __name__ == "__main__":
     parser.add_argument("--num_workers", type=int, default=6, help="The number of workers for the data loader.")
     parser.add_argument("--log_dir", type=str, default="logs", help="The directory for the logs.")
     parser.add_argument("--load_from", type=str, default=None, help="The path to the checkpoint to load from.")
+    parser.add_argument("--is_mixture", type=bool, default=False, help="mixture or not")
     
     args = parser.parse_args()
     main(args)

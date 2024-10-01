@@ -350,7 +350,7 @@ class SSLFrontend(nn.Module):
             task_arg = argparse.Namespace(task='audio_pretraining')
             task = fairseq.tasks.setup_task(task_arg)
             # https://dl.fbaipublicfiles.com/fairseq/wav2vec/xlsr2_300m.pt
-            model, _, _ = fairseq.checkpoint_utils.load_model_ensemble_and_task(['/root/xlsr2_300m.pt'], task=task)
+            model, _, _ = fairseq.checkpoint_utils.load_model_ensemble_and_task(['/home/yzyouzhang/xlsr2_300m.pt'], task=task)
             self.model = model[0]
         self.device = device
         filts = [70, [1, 32], [32, 32], [32, 64], [64, 64]]
@@ -543,5 +543,10 @@ if __name__ == "__main__":
     
     print("Testing MFCC Encoder")
     model = SVDDModel(frontend="mfcc").cuda()
+    _, output = model(x)
+    print(output.shape) # expected: torch.Size([4, 1])
+
+    print("Testing XLSR Encoder")
+    model = SVDDModel(frontend="xlsr").cuda()
     _, output = model(x)
     print(output.shape) # expected: torch.Size([4, 1])
