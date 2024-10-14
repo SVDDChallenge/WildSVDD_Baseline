@@ -343,85 +343,85 @@ class MFCC(nn.Module):
         x = x.view(x.size(0), x.size(1), 23, 29)
         return x
     
-class SSLFrontend(nn.Module):
-    def __init__(self, device, model_label, model_dim):
-        super(SSLFrontend, self).__init__()
-        if model_label == "xlsr":
-            task_arg = argparse.Namespace(task='audio_pretraining')
-            task = fairseq.tasks.setup_task(task_arg)
-            # https://dl.fbaipublicfiles.com/fairseq/wav2vec/xlsr2_300m.pt
-            model, _, _ = fairseq.checkpoint_utils.load_model_ensemble_and_task(['/home/yzyouzhang/xlsr2_300m.pt'], task=task)
-            self.model = model[0]
-        self.device = device
-        filts = [70, [1, 32], [32, 32], [32, 64], [64, 64]]
+# class SSLFrontend(nn.Module):
+#     def __init__(self, device, model_label, model_dim):
+#         super(SSLFrontend, self).__init__()
+#         if model_label == "xlsr":
+#             task_arg = argparse.Namespace(task='audio_pretraining')
+#             task = fairseq.tasks.setup_task(task_arg)
+#             # https://dl.fbaipublicfiles.com/fairseq/wav2vec/xlsr2_300m.pt
+#             model, _, _ = fairseq.checkpoint_utils.load_model_ensemble_and_task(['/home/yzyouzhang/xlsr2_300m.pt'], task=task)
+#             self.model = model[0]
+#         self.device = device
+#         filts = [70, [1, 32], [32, 32], [32, 64], [64, 64]]
 
-        self.sample_rate = 16000 # only 16000 setting is supported
-        self.encoder = nn.Sequential(
-            nn.Sequential(Residual_block(nb_filts=filts[1], first=True)),
-            nn.Sequential(Residual_block(nb_filts=filts[2])),
-            nn.Sequential(Residual_block(nb_filts=filts[3])),
-            nn.Sequential(Residual_block(nb_filts=filts[4])),
-        )
-        self.linear = nn.Linear(model_dim * 2, 23 * 29)
+#         self.sample_rate = 16000 # only 16000 setting is supported
+#         self.encoder = nn.Sequential(
+#             nn.Sequential(Residual_block(nb_filts=filts[1], first=True)),
+#             nn.Sequential(Residual_block(nb_filts=filts[2])),
+#             nn.Sequential(Residual_block(nb_filts=filts[3])),
+#             nn.Sequential(Residual_block(nb_filts=filts[4])),
+#         )
+#         self.linear = nn.Linear(model_dim * 2, 23 * 29)
         
-    def extract_feature(self, x):
-        if next(self.model.parameters()).device != x.device \
-            or next(self.model.parameters()).dtype != x.dtype:
-            self.model.to(x.device, dtype=x.dtype)
-            self.model.train()
-        emb = self.model(x, mask=False, features_only=True)['x']
-        return emb
+#     def extract_feature(self, x):
+#         if next(self.model.parameters()).device != x.device \
+#             or next(self.model.parameters()).dtype != x.dtype:
+#             self.model.to(x.device, dtype=x.dtype)
+#             self.model.train()
+#         emb = self.model(x, mask=False, features_only=True)['x']
+#         return emb
     
-    def forward(self, x):
-        x = self.extract_feature(x)
-        x = x.transpose(1, 2).unsqueeze(1) # [batch, 1, seq, dim]
-        x = self.encoder(x)
-        x = x.view(x.size(0), x.size(1), -1)
-        x = self.linear(x)
-        x = x.view(x.size(0), x.size(1), 23, 29)
-        return x
+#     def forward(self, x):
+#         x = self.extract_feature(x)
+#         x = x.transpose(1, 2).unsqueeze(1) # [batch, 1, seq, dim]
+#         x = self.encoder(x)
+#         x = x.view(x.size(0), x.size(1), -1)
+#         x = self.linear(x)
+#         x = x.view(x.size(0), x.size(1), 23, 29)
+#         return x
 
 
-class S3PRL(nn.Module):
-    def __init__(self, device, model_label, model_dim):
-        super(S3PRL, self).__init__()
-        if S3PRLUpstream is None:
-            raise ModuleNotFoundError("s3prl is not found, likely not installed, please install use `pip`")
+# class S3PRL(nn.Module):
+#     def __init__(self, device, model_label, model_dim):
+#         super(S3PRL, self).__init__()
+#         if S3PRLUpstream is None:
+#             raise ModuleNotFoundError("s3prl is not found, likely not installed, please install use `pip`")
 
-        filts = [70, [1, 32], [32, 32], [32, 64], [64, 64]]
+#         filts = [70, [1, 32], [32, 32], [32, 64], [64, 64]]
 
-        self.sample_rate = 16000 # only 16000 setting is supported
-        if model_label == "mms":
-            self.model = S3PRLUpstream(
-                "hf_wav2vec2_custom",
-                path_or_url="facebook/mms-300m",
-            ).to(device)
-            print("Model has been sent to", device)
-        else:
-            self.model = S3PRLUpstream(model_label).to(device)
-            print("Model has been sent to", device)
+#         self.sample_rate = 16000 # only 16000 setting is supported
+#         if model_label == "mms":
+#             self.model = S3PRLUpstream(
+#                 "hf_wav2vec2_custom",
+#                 path_or_url="facebook/mms-300m",
+#             ).to(device)
+#             print("Model has been sent to", device)
+#         else:
+#             self.model = S3PRLUpstream(model_label).to(device)
+#             print("Model has been sent to", device)
 
-        self.encoder = nn.Sequential(
-            nn.Sequential(Residual_block(nb_filts=filts[1], first=True)),
-            nn.Sequential(Residual_block(nb_filts=filts[2])),
-            nn.Sequential(Residual_block(nb_filts=filts[3])),
-            nn.Sequential(Residual_block(nb_filts=filts[4])),
-        )
-        self.linear = nn.Linear(model_dim * 2 * 64, 1) # match the output shape of the rawnet encoder
+#         self.encoder = nn.Sequential(
+#             nn.Sequential(Residual_block(nb_filts=filts[1], first=True)),
+#             nn.Sequential(Residual_block(nb_filts=filts[2])),
+#             nn.Sequential(Residual_block(nb_filts=filts[3])),
+#             nn.Sequential(Residual_block(nb_filts=filts[4])),
+#         )
+#         self.linear = nn.Linear(model_dim * 2 * 64, 1) # match the output shape of the rawnet encoder
 
-    def forward(self, x):
-        print(x.size()) # expected: torch.Size([batch, 64000])
-        x_lens = torch.LongTensor(x.size(0)).to(x.device)
-        x, _ = self.model(x, x_lens)
-        x = x[-1].transpose(1, 2).unsqueeze(1) # take the last hidden states
-        # print(x.size())
-        x = self.encoder(x)
-        # print(x.size())
-        x = x.view(x.size(0), -1)
-        # print(x.size())
-        x = self.linear(x)
-        x = x.view(x.size(0), 1)
-        return x
+#     def forward(self, x):
+#         print(x.size()) # expected: torch.Size([batch, 64000])
+#         x_lens = torch.LongTensor(x.size(0)).to(x.device)
+#         x, _ = self.model(x, x_lens)
+#         x = x[-1].transpose(1, 2).unsqueeze(1) # take the last hidden states
+#         # print(x.size())
+#         x = self.encoder(x)
+#         # print(x.size())
+#         x = x.view(x.size(0), -1)
+#         # print(x.size())
+#         x = self.linear(x)
+#         x = x.view(x.size(0), 1)
+#         return x
 
 class SVDDModel(nn.Module):
     def __init__(self, frontend=None, device=torch.device("cuda")):
@@ -546,7 +546,7 @@ if __name__ == "__main__":
     _, output = model(x)
     print(output.shape) # expected: torch.Size([4, 1])
 
-    print("Testing XLSR Encoder")
-    model = SVDDModel(frontend="xlsr").cuda()
-    _, output = model(x)
-    print(output.shape) # expected: torch.Size([4, 1])
+    # print("Testing XLSR Encoder")
+    # model = SVDDModel(frontend="xlsr").cuda()
+    # _, output = model(x)
+    # print(output.shape) # expected: torch.Size([4, 1])
