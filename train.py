@@ -175,7 +175,7 @@ if __name__ == "__main__":
     parser.add_argument("--num_workers", type=int, default=6, help="The number of workers for the data loader.")
     parser.add_argument("--log_dir", type=str, default="logs", help="The directory for the logs.")
     parser.add_argument("--load_from", type=str, default=None, help="The path to the checkpoint to load from.")
-    parser.add_argument("--is_mixture", type=bool, default=False, help="mixture or not")
+    parser.add_argument("--is_mixture", action="store_true", default=False, help="mixture or not")
     
     args = parser.parse_args()
     main(args)

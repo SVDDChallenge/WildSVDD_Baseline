@@ -37,7 +37,7 @@ def main(args):
             pos_samples.append(pred[label == 1].detach().cpu().numpy())
             neg_samples.append(pred[label == 0].detach().cpu().numpy())
             for p, y, title, clip_idx in zip(pred, label, titles, clip_indices):
-                with open(os.path.join(scores_out, f'scores_{args.encoder}_A.txt'), "a") as f:
+                with open(os.path.join(scores_out, f'scores_{args.encoder}_A_%s.txt' % ("mixture" if args.is_mixture else "vocals")), "a") as f:
                     f.write(f"{title} {clip_idx} {p.item()} {y}\n")
         test_A_EER = compute_eer(np.concatenate(pos_samples), np.concatenate(neg_samples))[0]
         print(f"Test A EER: {test_A_EER}")
@@ -51,7 +51,7 @@ def main(args):
             pos_samples.append(pred[label == 1].detach().cpu().numpy())
             neg_samples.append(pred[label == 0].detach().cpu().numpy())
             for p, y, title, clip_idx in zip(pred, label, titles, clip_indices):
-                with open(os.path.join(scores_out, f'scores_{args.encoder}_B.txt'), "a") as f:
+                with open(os.path.join(scores_out, f'scores_{args.encoder}_B_%s.txt' % ("mixture" if args.is_mixture else "vocals")), "a") as f:
                     f.write(f"{title} {clip_idx} {p.item()} {y}\n")
         test_B_EER = compute_eer(np.concatenate(pos_samples), np.concatenate(neg_samples))[0]
         print(f"Test B EER: {test_B_EER}")
@@ -67,7 +67,7 @@ if __name__ == "__main__":
     parser.add_argument("--batch_size", type=int, default=36, help="The batch size for training.")
     parser.add_argument("--num_workers", type=int, default=12, help="The number of workers for the data loader.")
     parser.add_argument("--output_path", type=str, default="scores", help="The output folder for the scores.")
-    parser.add_argument("--is_mixture", type=bool, default=False, help="mixture or not")
+    parser.add_argument("--is_mixture", action="store_true", default=False, help="mixture or not")
     
     args = parser.parse_args()
     main(args)
