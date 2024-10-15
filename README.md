@@ -12,6 +12,15 @@ Please refer to the WildSVDD section in the SVDD 2024 @ SLT challenge overview p
 
 Please send your score TXT files and a 2-page system description to [svddchallenge@gmail.com](mailto:svddchallenge@gmail.com). Feel free to submit as many systems as you want.
 
+### Example submission
+
+Example score files are included in the `scores` folder. It is a raw-waveform based AASIST model. The performance of it is:
+
+| EER | Test_A    | Test_B |
+| -------- | -------- | ------- |
+| Mixture | 10.88  | 17.69    |
+| Vocals | 8.84  | 26.11    |
+
 ### Train the AASIST baseline with raw waveform frontend
 ```
 python train.py --is_mixture True --frontend rawnet
@@ -20,4 +29,3 @@ python train.py --is_mixture True --frontend rawnet
 ```
 python eval.py -m ./logs/rawnet/20241001-153348/checkpoints/best_model.pt --encoder rawnet --is_mixture
 ```
-
