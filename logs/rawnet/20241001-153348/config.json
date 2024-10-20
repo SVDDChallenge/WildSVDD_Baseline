@@ -1,0 +1,1 @@
+{'base_dir': '/data2/neil/SVDD_challenge/WildSVDD/WildSVDD_Data_Sep2024_Processed', 'epochs': 100, 'debug': False, 'gpu': 0, 'encoder': 'rawnet', 'batch_size': 24, 'num_workers': 6, 'log_dir': 'logs', 'load_from': None, 'is_mixture': True}
